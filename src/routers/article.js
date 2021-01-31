@@ -1,16 +1,27 @@
 const express = require("express");
-const { getTopNews } = require("../newsAPI");
-const { updateQueries, defaultTopNewsQueries } = require("../utils/queries");
+const { getNews } = require("../newsAPI");
+const { updateQueries, defaultQueries } = require("../utils/queries");
 const router = new express.Router();
 
 router.get("/top-news", async (req, res) => {
   try {
-    let queries = defaultTopNewsQueries();
+    let queries = defaultQueries();
     if (req.query) queries = updateQueries(queries)(req.query);
-
-    const data = await getTopNews(queries);
+    const data = await getNews(queries);
     const { articles } = data;
-    console.log(articles);
+    res.status(200).send(articles);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
+router.get("/category-news", async (req, res) => { 
+  try {
+    let queries = defaultQueries();
+    // will always at least receive a user-provided category query
+    updateQueries(queries)(req.query);
+    const data = await getNews(queries);
+    const { articles } = data;
     res.status(200).send(articles);
   } catch (error) {
     res.status(500).send(error);
