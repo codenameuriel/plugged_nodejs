@@ -1,26 +1,22 @@
-const updateQueries = defaultQueries => {
-  return userQueries => ({
-    ...defaultQueries,
-    ...userQueries
-  });
+const updateQueries = (...defaultQueries) => {
+  let queries = {};
+  for (q of defaultQueries) {
+    queries = {...queries, ...q};
+  }
+  return queries;
 };
 
-const defaultQueries = () => ({
-  country: "us",
+const defaultPaginationQueries = () => ({
   pageSize: 9,
-  page: 1 
+  page: 1
 });
 
-// const defaultTopNewsQueries = () => ({
-//   ...defaultQueries()
-// });
-
-// const defaultCategoryNewsQueries = category => ({
-//   ...defaultQueries(),
-//   [category]: category
-// });
+const defaultCountryQuery = () => ({
+  country: "us"
+});
 
 module.exports = {
   updateQueries,
-  defaultQueries,
+  defaultPaginationQueries,
+  defaultCountryQuery
 };
