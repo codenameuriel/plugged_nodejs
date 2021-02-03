@@ -17,9 +17,7 @@ router.get("/top-news", async ({ query }, res) => {
 
 router.get("/category-news", async ({ query }, res) => { 
   try {
-    let queries = updateQueries(defaultCountryQuery(), defaultPaginationQueries());
-    // will always receive a minimum user-provided category query
-    updateQueries(queries, query);
+    const queries = updateQueries(defaultCountryQuery(), defaultPaginationQueries(), query);
     const data = await getNews(queries);
     const { articles } = data;
     res.status(200).send(articles);
@@ -29,12 +27,23 @@ router.get("/category-news", async ({ query }, res) => {
 });
 
 // provides an array of source objects
-router.get("/sources", async (req, res) => { 
+router.get("/sources", async ({ query }, res) => { 
   try {
-    let queries = defaultCountryQuery();
+    const queries = defaultCountryQuery();
     const data = await getSources(queries);
     const { sources } = data;
     res.status(200).send(data);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
+router.get("/source-news", async ({ query }, res) => { 
+  try {
+    let queries = updateQueries(defaultPaginationQueries(), query);
+    const data = await getNews(queries);
+    const { articles } = data;
+    res.status(200).send(articles);
   } catch (error) {
     res.status(500).send(error);
   }
