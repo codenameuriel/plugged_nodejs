@@ -1,15 +1,18 @@
 const express = require("express");
 const { getNews, getSources, getTopicNews } = require("../newsAPI");
 const { updateQueries, defaultPaginationQueries, defaultCountryQuery } = require("../utils/queries");
+const { totalNumberOfPages, perPage } = require("../utils/pagination");
 const router = new express.Router();
+const Article = require("../models/article");
 
 router.get("/top-news", async ({ query }, res) => {
   try {
     let queries = updateQueries(defaultCountryQuery(), defaultPaginationQueries());
     if (query) queries = updateQueries(queries, query);
     const data = await getNews(queries);
+    const totalPages = totalNumberOfPages(data.totalResults, perPage());
     const { articles } = data;
-    res.status(200).send(articles);
+    res.status(200).send({ articles, totalPages });
   } catch (error) {
     res.status(500).send(error);
   }
@@ -59,5 +62,15 @@ router.get("/topic-news", async ({ query }, res) => {
     res.status(500).send(error);
   }
 });
+
+// router.post("/add-to-collection", async ({ body }, res) => { 
+//   const article = new Article({ ...body });
+
+//   try {
+
+//   } catch (error) {
+
+//   }
+// });
 
 module.exports = router;
