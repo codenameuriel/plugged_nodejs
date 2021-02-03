@@ -10,7 +10,12 @@ const getSources = async queries => {
   return await newsapi.v2.sources(queries);
 };
 
+const getTopicNews = async queries => {
+  return await newsapi.v2.everything(queries);
+};
+
 module.exports = {
   getNews,
-  getSources
+  getSources,
+  getTopicNews
 };
