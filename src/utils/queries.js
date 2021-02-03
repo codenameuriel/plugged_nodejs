@@ -1,7 +1,7 @@
 const updateQueries = (...defaultQueries) => {
   let queries = {};
-  for (q of defaultQueries) {
-    queries = {...queries, ...q};
+  for (query of defaultQueries) {
+    queries = {...queries, ...query};
   }
   return queries;
 };

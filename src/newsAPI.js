@@ -6,11 +6,11 @@ const getNews = async queries => {
   return await newsapi.v2.topHeadlines(queries);
 };
 
-const getSourceNews = async queries => { 
+const getSources = async queries => { 
   return await newsapi.v2.sources(queries);
 };
 
 module.exports = {
   getNews,
-  getSourceNews
+  getSources
 };

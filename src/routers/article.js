@@ -1,12 +1,12 @@
 const express = require("express");
-const { getNews, getSourceNews } = require("../newsAPI");
+const { getNews, getSources } = require("../newsAPI");
 const { updateQueries, defaultPaginationQueries, defaultCountryQuery } = require("../utils/queries");
 const router = new express.Router();
 
-router.get("/top-news", async (req, res) => {
+router.get("/top-news", async ({ query }, res) => {
   try {
     let queries = updateQueries(defaultCountryQuery(), defaultPaginationQueries());
-    if (req.query) queries = updateQueries(queries, req.query);
+    if (query) queries = updateQueries(queries, query);
     const data = await getNews(queries);
     const { articles } = data;
     res.status(200).send(articles);
@@ -15,11 +15,11 @@ router.get("/top-news", async (req, res) => {
   }
 });
 
-router.get("/category-news", async (req, res) => { 
+router.get("/category-news", async ({ query }, res) => { 
   try {
     let queries = updateQueries(defaultCountryQuery(), defaultPaginationQueries());
-    // will always at least receive a user-provided category query
-    updateQueries(queries, req.query);
+    // will always receive a minimum user-provided category query
+    updateQueries(queries, query);
     const data = await getNews(queries);
     const { articles } = data;
     res.status(200).send(articles);
@@ -29,12 +29,14 @@ router.get("/category-news", async (req, res) => {
 });
 
 // provides an array of source objects
-router.get("/source-news", async (req, res) => { 
+router.get("/sources", async (req, res) => { 
   try {
-    let queries = defaultQueries();
-    updateQueries(queries)(req.query);
+    let queries = defaultCountryQuery();
+    const data = await getSources(queries);
+    const { sources } = data;
+    res.status(200).send(data);
   } catch (error) {
-
+    res.status(500).send(error);
   }
 });
 
