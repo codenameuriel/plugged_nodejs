@@ -14,7 +14,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
     trim: true,
-    minlength: 7,
+    minlength: 4,
     validate(value) {
       if (value.match(/password/i)) {
         throw new Error("Password cannot contain password");
