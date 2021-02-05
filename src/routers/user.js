@@ -6,13 +6,25 @@ router.post("/signup", async ({ body }, res) => {
   console.log(body);
   const user = new User(body);
   try {
-    // bcrypt middleware executes hashing password before saving
+    // bcrypt middleware hashes password before saving
     await user.save();
 
     // JSON auth token is generated and added to the users collection of tokens to track various points of login
     const token = await user.generateAuthToken();
-    console.log(user);
+
     res.status(201).send({ user, token });
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
+router.post("/login", async ({ body: { username, password }}, res) => { 
+  try {
+    // if user is not found or password does not match hashed password, will throw error
+    const user = await User.findByCredentials(username, password);
+    const token = await user.generateAuthToken();
+
+    res.send({ user, token });
   } catch (error) {
     res.status(400).send(error);
   }
