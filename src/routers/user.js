@@ -3,7 +3,6 @@ const User = require("../models/user");
 const router = new express.Router();
 
 router.post("/signup", async ({ body }, res) => { 
-  console.log(body);
   const user = new User(body);
   try {
     // bcrypt middleware hashes password before saving
@@ -20,13 +19,14 @@ router.post("/signup", async ({ body }, res) => {
 
 router.post("/login", async ({ body: { username, password }}, res) => { 
   try {
+    console.log(username, password);
     // if user is not found or password does not match hashed password, will throw error
     const user = await User.findByCredentials(username, password);
     const token = await user.generateAuthToken();
 
     res.send({ user, token });
   } catch (error) {
-    res.status(400).send(error);
+    res.status(404).send(error);
   }
 });
 
