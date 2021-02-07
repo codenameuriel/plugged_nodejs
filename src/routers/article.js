@@ -1,5 +1,5 @@
 const express = require("express");
-const { getNews, getSources, getTopicNews } = require("../newsAPI");
+const newsapi = require("../newsapi");
 const { updateQueries, defaultPaginationQueries, defaultCountryQuery } = require("../utils/queries");
 const { totalNumberOfPages } = require("../utils/pagination");
 const router = new express.Router();
@@ -10,7 +10,7 @@ router.get("/top-news", async ({ query }, res) => {
     let queries = updateQueries(defaultCountryQuery(), defaultPaginationQueries());
     if (query) queries = updateQueries(queries, query);
  
-    const data = await getNews(queries);
+    const data = await newsapi.v2.topHeadlines(queries);
     const totalPages = totalNumberOfPages(data.totalResults)();
     const { articles } = data;
 
@@ -23,7 +23,7 @@ router.get("/top-news", async ({ query }, res) => {
 router.get("/category-news", async ({ query }, res) => { 
   try {
     const queries = updateQueries(defaultCountryQuery(), defaultPaginationQueries(), query);
-    const data = await getNews(queries);
+    const data = await newsapi.v2.topHeadlines(queries);
     const { articles } = data;
 
     res.status(200).send(articles);
@@ -36,7 +36,7 @@ router.get("/category-news", async ({ query }, res) => {
 router.get("/sources", async ({ query }, res) => { 
   try {
     const queries = defaultCountryQuery();
-    const data = await getSources(queries);
+    const data = await newsapi.v2.sources(queries);
     const { sources } = data;
 
     res.status(200).send(sources);
@@ -48,7 +48,7 @@ router.get("/sources", async ({ query }, res) => {
 router.get("/source-news", async ({ query }, res) => { 
   try {
     let queries = updateQueries(defaultPaginationQueries(), query);
-    const data = await getNews(queries);
+    const data = await newsapi.v2.topHeadlines(queries);
     const { articles } = data;
 
     res.status(200).send(articles);
@@ -60,7 +60,7 @@ router.get("/source-news", async ({ query }, res) => {
 router.get("/topic-news", async ({ query }, res) => { 
   try {
     let queries = updateQueries(defaultPaginationQueries(), query);
-    const data = await getTopicNews(queries);
+    const data = await newsapi.v2.everything(queries);
     const { articles } = data;
 
     res.status(200).send(articles);
