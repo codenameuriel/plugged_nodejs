@@ -1,26 +1,30 @@
 const express = require("express");
 const newsapi = require("../newsapi");
-const { updateQueries, defaultPaginationQueries, defaultCountryQuery } = require("../utils/queries");
-const { totalNumberOfPages } = require("../utils/pagination");
+const { createQuery, defaultPaginationQuery, defaultCountryQuery } = require("../utils/queries");
+const { calculateNumOfPages } = require("../utils/pagination");
 const router = new express.Router();
 const Article = require("../models/article");
 
-router.get("/top-news", async ({ query }, res) => {
+router.get("/top-news", async ({ query: userQuery }, res) => {
   try {
-    // construct base queries
-    let queries = { ...defaultPaginationQueries(), ...defaultCountryQuery() };
+    // construct base query
+    let query = (
+      createQuery(defaultPaginationQuery(), defaultCountryQuery())
+    );
 
-    // if user provided queries, add the user's queries to the base queries
-    if (query) queries = updateQueries(queries, query);
+    // if user provided queries, add the user's queries to the base query
+    if (Object.keys(userQuery).length > 0) {
+      query = createQuery(query, userQuery);
+    }
  
     // api call for top headlines providing constructed queries object
-    const data = await newsapi.v2.topHeadlines(queries);
+    const data = await newsapi.v2.topHeadlines(query);
+    
+    // destructure data object
+    const { articles, totalResults } = data;
 
     // calculate total amount of pages needed to render new articles (9 per page)
-    const newsPerPage = totalNumberOfPages(data.totalResults);
-    const totalPages = newsPerPage();
-    // destructure data object and store articles array in articles variable
-    const { articles } = data;
+    const totalPages = calculateNumOfPages(totalResults)();
 
     // return to client-side an object with articles and totalPages
     res.status(200).send({ articles, totalPages });
@@ -31,10 +35,13 @@ router.get("/top-news", async ({ query }, res) => {
 
 router.get("/category-news", async ({ query }, res) => { 
   try {
-    const queries = (
-      updateQueries(defaultCountryQuery(), defaultPaginationQueries(), query)
+    const baseQuery = (
+      createQuery(defaultPaginationQuery(), defaultCountryQuery())
     );
-    const data = await newsapi.v2.topHeadlines(queries);
+
+    // update base queries with category query
+    const updatedQuery = createQuery(baseQuery, query);
+    const data = await newsapi.v2.topHeadlines(updatedQuery);
     const { articles } = data;
 
     res.status(200).send(articles);
@@ -44,10 +51,10 @@ router.get("/category-news", async ({ query }, res) => {
 });
 
 // provides an array of source objects
-router.get("/sources", async ({ query }, res) => { 
+router.get("/sources", async (req, res) => { 
   try {
-    const queries = defaultCountryQuery();
-    const data = await newsapi.v2.sources(queries);
+    const baseQuery = defaultCountryQuery();
+    const data = await newsapi.v2.sources(baseQuery);
     const { sources } = data;
 
     res.status(200).send(sources);
@@ -56,10 +63,10 @@ router.get("/sources", async ({ query }, res) => {
   }
 });
 
-router.get("/source-news", async ({ query }, res) => { 
+router.get("/source-news", async (req, res) => { 
   try {
-    let queries = updateQueries(defaultPaginationQueries(), query);
-    const data = await newsapi.v2.topHeadlines(queries);
+    const query = createQuery(defaultPaginationQuery(), query);
+    const data = await newsapi.v2.topHeadlines(query);
     const { articles } = data;
 
     res.status(200).send(articles);
@@ -68,10 +75,10 @@ router.get("/source-news", async ({ query }, res) => {
   }
 });
 
-router.get("/topic-news", async ({ query }, res) => { 
+router.get("/topic-news", async ({ query: userQuery }, res) => { 
   try {
-    let queries = updateQueries(defaultPaginationQueries(), query);
-    const data = await newsapi.v2.everything(queries);
+    const query = createQuery(defaultPaginationQuery(), userQuery);
+    const data = await newsapi.v2.everything(query);
     const { articles } = data;
 
     res.status(200).send(articles);
@@ -80,18 +87,31 @@ router.get("/topic-news", async ({ query }, res) => {
   }
 });
 
-router.get("/dashboard-news", async ({ query }, res) => { 
+router.get("/dashboard-news", async ({ query: userQuery }, res) => { 
   try {
-    let queries = { ...defaultPaginationQueries(), ...defaultCountryQuery() };
-    console.log(queries);
-    const { categories: categoriesQuery } = query; 
+    // create base query
+    let query = (
+      createQuery(defaultPaginationQuery(), defaultCountryQuery())
+    );
+
+    // destructure query object and store categories string in categoriesQuery variable
+    const { categories: categoriesQuery } = userQuery; 
+
+    // split string into an array of category strings
     const categories = categoriesQuery.split(",");
+
+    // initialize object that will contain k:v pairs -> category name : array of news
     let newsByCategories = {};
 
+    // iterate over array of category strings
+    // for each category string create a query object adding a category property that maps to the category string
+    // make an api call with the query containing the category
+    // update the newsByCategories object by adding the k:v pair -> category name : array of news
     categories.forEach(async category => {
-      queries = updateQueries(queries, { category: category });
-      const data = await newsapi.v2.topHeadlines(queries);
-      newsByCategories = { ...newsByCategories, [category]: data.articles };
+      query = createQuery(query, { category: category });
+      const data = await newsapi.v2.topHeadlines(query);
+      const { articles } = data;
+      newsByCategories = { ...newsByCategories, [category]: articles };
     });
 
     res.status(200).send(newsByCategories);

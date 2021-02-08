@@ -1,12 +1,12 @@
-const updateQueries = (...defaultQueries) => {
-  let queries = {};
-  for (query of defaultQueries) {
-    queries = {...queries, ...query};
+const createQuery = (...queries) => {
+  let updatedQuery = {};
+  for (query of queries) {
+    updatedQuery = {...updatedQuery, ...query};
   }
-  return queries;
+  return updatedQuery;
 };
 
-const defaultPaginationQueries = () => ({
+const defaultPaginationQuery = () => ({
   pageSize: 9,
   page: 1
 });
@@ -16,7 +16,7 @@ const defaultCountryQuery = () => ({
 });
 
 module.exports = {
-  updateQueries,
-  defaultPaginationQueries,
+  createQuery,
+  defaultPaginationQuery,
   defaultCountryQuery
 };

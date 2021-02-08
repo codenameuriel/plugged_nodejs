@@ -1,9 +1,9 @@
 const perPage = () => 9;
 
-const totalNumberOfPages = totalArticles => {
+const calculateNumOfPages = totalArticles => {
   return (numOfArticles=perPage()) => Math.ceil(totalArticles / numOfArticles);
 };
 
 module.exports = {
-  totalNumberOfPages
+  calculateNumOfPages
 };
