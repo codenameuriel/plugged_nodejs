@@ -1,7 +1,7 @@
 const perPage = () => 9;
 
 const totalNumberOfPages = totalArticles => {
-  return () => Math.ceil(totalArticles / perPage());
+  return (numOfArticles=perPage()) => Math.ceil(totalArticles / numOfArticles);
 };
 
 module.exports = {

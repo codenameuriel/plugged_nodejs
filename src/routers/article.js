@@ -7,13 +7,22 @@ const Article = require("../models/article");
 
 router.get("/top-news", async ({ query }, res) => {
   try {
-    let queries = updateQueries(defaultCountryQuery(), defaultPaginationQueries());
+    // construct base queries
+    let queries = { ...defaultPaginationQueries(), ...defaultCountryQuery() };
+
+    // if user provided queries, add the user's queries to the base queries
     if (query) queries = updateQueries(queries, query);
  
+    // api call for top headlines providing constructed queries object
     const data = await newsapi.v2.topHeadlines(queries);
-    const totalPages = totalNumberOfPages(data.totalResults)();
+
+    // calculate total amount of pages needed to render new articles (9 per page)
+    const newsPerPage = totalNumberOfPages(data.totalResults);
+    const totalPages = newsPerPage();
+    // destructure data object and store articles array in articles variable
     const { articles } = data;
 
+    // return to client-side an object with articles and totalPages
     res.status(200).send({ articles, totalPages });
   } catch (error) {
     res.status(500).send(error);
@@ -22,7 +31,9 @@ router.get("/top-news", async ({ query }, res) => {
 
 router.get("/category-news", async ({ query }, res) => { 
   try {
-    const queries = updateQueries(defaultCountryQuery(), defaultPaginationQueries(), query);
+    const queries = (
+      updateQueries(defaultCountryQuery(), defaultPaginationQueries(), query)
+    );
     const data = await newsapi.v2.topHeadlines(queries);
     const { articles } = data;
 
@@ -64,6 +75,26 @@ router.get("/topic-news", async ({ query }, res) => {
     const { articles } = data;
 
     res.status(200).send(articles);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
+router.get("/dashboard-news", async ({ query }, res) => { 
+  try {
+    let queries = { ...defaultPaginationQueries(), ...defaultCountryQuery() };
+    console.log(queries);
+    const { categories: categoriesQuery } = query; 
+    const categories = categoriesQuery.split(",");
+    let newsByCategories = {};
+
+    categories.forEach(async category => {
+      queries = updateQueries(queries, { category: category });
+      const data = await newsapi.v2.topHeadlines(queries);
+      newsByCategories = { ...newsByCategories, [category]: data.articles };
+    });
+
+    res.status(200).send(newsByCategories);
   } catch (error) {
     res.status(500).send(error);
   }
