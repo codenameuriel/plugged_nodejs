@@ -2,6 +2,7 @@ const express = require("express");
 const newsapi = require("../newsapi");
 const { createQuery, defaultPaginationQuery, defaultCountryQuery } = require("../utils/queries");
 const { calculateNumOfPages } = require("../utils/pagination");
+const { buildUserNews } = require("../utils/news");
 const router = new express.Router();
 const Article = require("../models/article");
 
@@ -100,21 +101,12 @@ router.get("/dashboard-news", async ({ query: userQuery }, res) => {
     // split string into an array of category strings
     const categories = categoriesQuery.split(",");
 
-    // initialize object that will contain k:v pairs -> category name : array of news
-    let newsByCategories = {};
+    // fetch user news by query params to news api in parallel
+    // build an object that aggregates news
+    const userNews = await buildUserNews(query, categories, "category");
+    console.log(userNews);
 
-    // iterate over array of category strings
-    // for each category string create a query object adding a category property that maps to the category string
-    // make an api call with the query containing the category
-    // update the newsByCategories object by adding the k:v pair -> category name : array of news
-    categories.forEach(async category => {
-      query = createQuery(query, { category: category });
-      const data = await newsapi.v2.topHeadlines(query);
-      const { articles } = data;
-      newsByCategories = { ...newsByCategories, [category]: articles };
-    });
-
-    res.status(200).send(newsByCategories);
+    res.status(200).send(userNews);
   } catch (error) {
     res.status(500).send(error);
   }
