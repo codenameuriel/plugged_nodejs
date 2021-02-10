@@ -2,10 +2,17 @@ const { createQuery } = require("./queries");
 const newsapi = require("../newsapi");
 
 async function getNewsByType(query, q, type) {
-  const updatedQuery = createQuery(query, { [type]: q });
-  const data = await newsapi.v2.topHeadlines(updatedQuery);
-  const { articles } = data;
-  return { [q]: articles };
+  try {
+    const updatedQuery = createQuery(query, { [type]: q });
+    const data = await newsapi.v2.topHeadlines(updatedQuery);
+    const { articles } = data;
+    console.log(data)
+    return { [q]: articles };
+  } catch (error) {
+      console.log(error);
+      return error;
+  }
+  
 }
 
 
