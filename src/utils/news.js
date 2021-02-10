@@ -8,6 +8,7 @@ async function getNewsByType(query, q, type) {
   return { [q]: articles };
 }
 
+
 async function buildUserNews(query, queries, type) {
   const news = queries.map(q => getNewsByType(query, q, type));
   const data = await Promise.all(news);

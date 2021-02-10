@@ -80,9 +80,10 @@ router.get("/topic-news", async ({ query: userQuery }, res) => {
   try {
     const query = createQuery(defaultPaginationQuery(), userQuery);
     const data = await newsapi.v2.everything(query);
-    const { articles } = data;
+    const { articles, totalResults } = data;
+    const totalPages = calculateNumOfPages(totalResults)();
 
-    res.status(200).send(articles);
+    res.status(200).send({ articles, totalPages });
   } catch (error) {
     res.status(500).send(error);
   }
@@ -104,7 +105,6 @@ router.get("/dashboard-news", async ({ query: userQuery }, res) => {
     // fetch user news by query params to news api in parallel
     // build an object that aggregates news
     const userNews = await buildUserNews(query, categories, "category");
-    console.log(userNews);
 
     res.status(200).send(userNews);
   } catch (error) {
