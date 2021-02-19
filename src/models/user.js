@@ -85,11 +85,11 @@ userSchema.methods.formattedCategories = function() {
 // User class method to authenticate User instances by email and password
 userSchema.statics.findByCredentials = async (username, password) => {
   const user = await User.findOne({ username });
-  if (!user) throw new Error("Unable to login!");
+  if (!user) throw new Error("Unable to authenticate!");
 
   // user.password === hashed password in database
   const isMatch = await bcrypt.compare(password, user.password);
-  if (!isMatch) throw new Error("Unable to login!");
+  if (!isMatch) throw new Error("Unable to authenticate!");
 
   return user;
 };
