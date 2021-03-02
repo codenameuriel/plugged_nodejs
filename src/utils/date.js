@@ -2,10 +2,11 @@ const minToMilliSecs = min => {
   return min * 60 * 1000;
 };
 
-const hasTimeElapsed = (pastTime, currTime, interval) => {
-  return pastTime.getTime() + minToMilliSecs(interval) >= currTime.getTime();
-}
+const checkTime = (pastTime, interval) => {
+  const now = new Date();
+  return (now.getTime() - pastTime) >= minToMilliSecs(interval);
+};
 
 module.exports = {
-  hasTimeElapsed
+  checkTime
 };

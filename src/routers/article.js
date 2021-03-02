@@ -4,7 +4,7 @@ const express = require('express');
 
 const { createQuery, defaultCountryQuery } = require('../utils/queries');
 const { calculateNumOfPages, perPage } = require('../utils/pagination');
-const { getTopNews, buildUserNews } = require('../utils/news');
+const { getNews, buildUserNews } = require('../utils/news');
 
 const router = new express.Router();
 
@@ -12,8 +12,10 @@ const Article = require('../models/article');
 
 router.get('/top-news', async ({ query }, res) => {
 	try {
+		// create query for api call
+		const apiQuery = createQuery({ page: 1 }, defaultCountryQuery());
 		// initial request to get news
-		const articles = await getTopNews({ page: 1 }, defaultCountryQuery());
+		const articles = await getNews(apiQuery);
 
 		// calculate total pages needed to render 9 articles per page
 		const totalPages = calculateNumOfPages(articles.length)();
