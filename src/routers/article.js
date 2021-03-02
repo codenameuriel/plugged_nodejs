@@ -3,7 +3,7 @@
 const express = require('express');
 
 const { createQuery, defaultCountryQuery } = require('../utils/queries');
-const { calculateNumOfPages } = require('../utils/pagination');
+const { calculateNumOfPages, perPage } = require('../utils/pagination');
 const { getTopNews, buildUserNews } = require('../utils/news');
 
 const router = new express.Router();
@@ -12,19 +12,18 @@ const Article = require('../models/article');
 
 router.get('/top-news', async ({ query }, res) => {
 	try {
-		console.log(query);
 		// initial request to get news
 		const articles = await getTopNews({ page: 1 }, defaultCountryQuery());
 
 		// calculate total pages needed to render 9 articles per page
-		const totalPages = calculateNumOfPages(getTopNews.cache.articles.length)();
+		const totalPages = calculateNumOfPages(articles.length)();
 		
 		// if query is empty, initial page load
 		if (!Object.keys(query).length) {
-			res.status(200).send({ articles: articles.slice(0, 9), totalPages });
+			res.status(200).send({ articles: articles.slice(0, perPage()), totalPages });
 		} else {
-			const to = query.page * 9;
-			const from = to - 9; 
+			const to = query.page * perPage();
+			const from = to - perPage(); 
 			res.status(200).send({ articles: articles.slice(from, to), totalPages });
 		}
 	} catch (error) {

@@ -12,5 +12,6 @@ const calculateNumOfPages = totalArticles => {
 };
 
 module.exports = {
+	perPage,
 	calculateNumOfPages
 };

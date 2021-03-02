@@ -1,7 +1,8 @@
 /** @format */
 
-const { createQuery } = require('./queries');
 const newsapi = require('../newsapi');
+const { createQuery } = require('./queries');
+const { hasTimeElapsed } = require('./date');
 
 async function getNewsByType(query, q, type) {
 	try {
@@ -33,7 +34,7 @@ async function getTopNews(...queries) {
 		let now = new Date();
 
 		// if articles have not been cached or if 15 minutes have passed
-		if (!getTopNews.cache.articles.length || now.getMinutes() - getTopNews.cache.time.getMinutes() >= 15) {
+		if (!getTopNews.cache.articles.length || hasTimeElapsed(getTopNews.cache.time.getTime(), now.getTime(), 15)) {
 			// update time
 			getTopNews.cache.time = now;
 
