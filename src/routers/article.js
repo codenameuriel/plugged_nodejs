@@ -2,7 +2,7 @@
 
 const express = require('express');
 
-const { createQuery, defaultCountryQuery } = require('../utils/queries');
+const { createQuery, defaultCountryQuery, defaultPaginationQuery } = require('../utils/queries');
 const { calculateNumOfPages, perPage } = require('../utils/pagination');
 const { getNews, buildUserNews } = require('../utils/news');
 
@@ -92,28 +92,36 @@ router.get('/topic-news', async ({ query: userQuery }, res) => {
 	}
 });
 
-router.get('/dashboard-news', async ({ query: userQuery }, res) => {
-	try {
-		// create base query
-		let query = createQuery(
-			defaultPaginationQuery(),
-			defaultCountryQuery()
-		);
-
-		// destructure query object and store categories string in categoriesQuery variable
-		const { categories: categoriesQuery } = userQuery;
-
-		// split string into an array of category strings
-		const categories = categoriesQuery.split(',');
-
-		// fetch user news by query params to news api in parallel
-		// build an object that aggregates news
-		const userNews = await buildUserNews(query, categories, 'category');
-
-		res.status(200).send(userNews);
-	} catch (error) {
-		console.log(error);
-		res.status(500).send(error);
+router.get('/dashboard-news', async ({ query }, res) => {
+	const { categories: categoriesQuery } = query;
+	
+	// if user signed up and subscribed to categories
+	if (categoriesQuery) {
+		try {
+			// destructure categories string from query
+			const { categories: categoriesQuery } = query;
+	
+			console.log(query)
+	
+			let apiQuery = createQuery(
+				defaultPaginationQuery(),
+				defaultCountryQuery()
+			);
+	
+			// split string of categories into an array of single category
+			const categories = categoriesQuery.split(',');
+	
+			// fetch user news by query params to news api in parallel
+			// build an object that aggregates news
+			const userNews = await buildUserNews(apiQuery, categories, 'category');
+	
+			res.status(200).send(userNews);
+		} catch (error) {
+			console.log(error);
+			res.status(500).send(error);
+		}
+	} else {
+		res.status(200).send({});
 	}
 });
 

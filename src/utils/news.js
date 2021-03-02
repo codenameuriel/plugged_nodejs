@@ -29,10 +29,10 @@ async function getNews(query) {
 	try {
 		// only want to fetch new articles every 15 minutes
 		const { time: cachedTime } = getNews.cache;
-		const hasTimeElapsed = checkTime(cachedTime.getTime(), 15);
+		const timeElapsed = checkTime(cachedTime.getTime(), 15);
 
 		// if articles have not been cached or if 15 minutes have passed
-		if (!getNews.cache.articles.length || hasTimeElapsed) {
+		if (!getNews.cache.articles.length || timeElapsed) {
 			// update time
 			getNews.cache.time = new Date();
 
@@ -42,6 +42,8 @@ async function getNews(query) {
         await fetchFromEndpoint('top-news')(query)
       );
 
+      // clear cache
+      getNews.clearArticlesCache();
 			// store news in cache
 			getNews.storeArticles(articles);
 
@@ -98,6 +100,9 @@ getNews.cache.articles = [];
 getNews.cache.time = new Date();
 getNews.storeArticles = articles => {
 	getNews.cache.articles = [...getNews.cache.articles, ...articles];
+};
+getNews.clearArticlesCache = () => {
+  getNews.cache.articles = [];
 };
 
 module.exports = {
