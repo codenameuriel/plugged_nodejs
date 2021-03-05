@@ -20,19 +20,19 @@ router.get('/top-news', async ({ query }, res) => {
 		// calculate total pages needed to render 9 articles per page
 		const totalPages = calculateNumOfPages(articles.length)();
 		
-		// if query is empty, initial page load
+		// initial page load will not provide a query
 		if (!Object.keys(query).length) {
-			res.status(200).send({ articles: articles.slice(0, perPage()), totalPages });
+			res.status(200).send({ 
+				articles: articles.slice(0, perPage()), totalPages 
+			});
 		} else {
 			const to = query.page * perPage();
 			const from = to - perPage(); 
 			res.status(200).send({ articles: articles.slice(from, to), totalPages });
 		}
 	} catch (error) {
-		console.log(error);
-		res.status(400).send({
-			message: error.message
-		});
+		console.error(error);
+		res.status(400).send({ message: error.message });
 	}
 });
 
@@ -50,6 +50,7 @@ router.get('/category-news', async ({ query }, res) => {
 
 		res.status(200).send(articles);
 	} catch (error) {
+		console.error(error);
 		res.status(500).send(error);
 	}
 });
@@ -63,6 +64,7 @@ router.get('/sources', async (req, res) => {
 
 		res.status(200).send(sources);
 	} catch (error) {
+		console.error(error);
 		res.status(500).send(error);
 	}
 });
@@ -75,6 +77,7 @@ router.get('/source-news', async (req, res) => {
 
 		res.status(200).send(articles);
 	} catch (error) {
+		console.error(error);
 		res.status(500).send(error);
 	}
 });
@@ -93,38 +96,37 @@ router.get('/topic-news', async ({ query }, res) => {
 
 		res.status(200).send({ articles, totalPages });
 	} catch (error) {
-		console.log(error)
+		console.error(error);
 		res.status(500).send(error);
 	}
 });
 
 router.get('/dashboard-news', async ({ query }, res) => {
+	// store categories string in categoriesQuery
 	const { categories: categoriesQuery } = query;
 	
-	// if user signed up and subscribed to categories
+	// if user is authenticated and subscribed to news categories
 	if (categoriesQuery) {
 		try {
-			// destructure categories string from query
-			const { categories: categoriesQuery } = query;
-
 			let apiQuery = createQuery(
 				defaultPaginationQuery(),
 				defaultCountryQuery()
 			);
 	
-			// split string of categories into an array of single category
+			// create an array of category elements
 			const categories = categoriesQuery.split(',');
 	
-			// fetch user news by query params to news api in parallel
-			// build an object that aggregates news
+			// fetch user news in parallel from news api 
+			// build an object that aggregates news by category using the categories array and query
 			const userNews = await buildUserNews(apiQuery, categories, 'category');
 	
 			res.status(200).send(userNews);
 		} catch (error) {
-			console.log(error);
+			console.error(error);
 			res.status(500).send(error);
 		}
 	} else {
+		// user is authenticated but is not subscribed to news categories
 		res.status(200).send({});
 	}
 });
