@@ -1,5 +1,3 @@
-/** @format */
-
 const perPage = () => 9;
 
 const calculateNumOfPages = totalArticles => {

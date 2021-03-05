@@ -1,5 +1,3 @@
-/** @format */
-
 const newsapi = require('../newsapi');
 const fetchFromEndpoint = require('./endpoints');
 const { createQuery } = require('./queries');

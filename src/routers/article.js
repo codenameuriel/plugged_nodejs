@@ -2,6 +2,7 @@
 
 const express = require('express');
 
+const newsapi = require('../newsapi');
 const { createQuery, defaultCountryQuery, defaultPaginationQuery } = require('../utils/queries');
 const { calculateNumOfPages, perPage } = require('../utils/pagination');
 const { getNews, buildUserNews } = require('../utils/news');
@@ -79,15 +80,21 @@ router.get('/source-news', async (req, res) => {
 	}
 });
 
-router.get('/topic-news', async ({ query: userQuery }, res) => {
+router.get('/topic-news', async ({ query }, res) => {
 	try {
-		const query = createQuery(defaultPaginationQuery(), userQuery);
-		const data = await newsapi.v2.everything(query);
+		console.log('inside topic-news')
+		const apiQuery = createQuery(defaultPaginationQuery(), query);
+		const data = await newsapi.v2.everything(apiQuery);
+
+		console.log(data)
+
+		console.log(data)
 		const { articles, totalResults } = data;
 		const totalPages = calculateNumOfPages(totalResults)();
 
 		res.status(200).send({ articles, totalPages });
 	} catch (error) {
+		console.log(error)
 		res.status(500).send(error);
 	}
 });
@@ -100,9 +107,7 @@ router.get('/dashboard-news', async ({ query }, res) => {
 		try {
 			// destructure categories string from query
 			const { categories: categoriesQuery } = query;
-	
-			console.log(query)
-	
+
 			let apiQuery = createQuery(
 				defaultPaginationQuery(),
 				defaultCountryQuery()

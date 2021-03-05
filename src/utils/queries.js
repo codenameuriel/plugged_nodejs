@@ -1,5 +1,3 @@
-/** @format */
-
 const createQuery = (...queries) => {
 	let updatedQuery = {};
 	for (query of queries) {
