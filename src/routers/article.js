@@ -1,9 +1,8 @@
-/** @format */
-
 const express = require('express');
-
 const newsapi = require('../newsapi');
-const { createQuery, defaultCountryQuery, defaultPaginationQuery } = require('../utils/queries');
+const { 
+	createQuery, defaultCountryQuery, defaultPaginationQuery 
+} = require('../utils/queries');
 const { calculateNumOfPages, perPage } = require('../utils/pagination');
 const { getNews, buildUserNews } = require('../utils/news');
 
