@@ -8,24 +8,19 @@ const articleSchema = new mongoose.Schema({
     type: String
   },
   title: {
-    type: String,
-    required: true
+    type: String
   },
   description: {
-    type: String,
-    required: true
+    type: String
   },
   url: {
-    type: String,
-    required: true
+    type: String
   },
   urlToImage: {
-    type: String,
-    required: true
+    type: String
   },
   publishedAt: {
-    type: String,
-    required: true
+    type: String
   },
   content: {
     type: String
@@ -34,4 +29,7 @@ const articleSchema = new mongoose.Schema({
 
 const Article = mongoose.model("Article", articleSchema);
 
-module.exports = Article;
+module.exports = {
+  Article,
+  articleSchema
+};

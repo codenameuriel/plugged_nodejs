@@ -3,6 +3,8 @@ const validator = require("validator");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
+const { Article, articleSchema } = require('./article');
+
 const userSchema = new mongoose.Schema({
   username: {
     type: String,
@@ -25,6 +27,13 @@ const userSchema = new mongoose.Schema({
     {
       category: {
         type: String
+      }
+    }
+  ],
+  articles: [
+    {
+      article: {
+        type: articleSchema
       }
     }
   ],
@@ -78,6 +87,23 @@ userSchema.methods.formattedCategories = function() {
   const user = this;
 
   return user.categories.map(cat => cat.category);
+}
+
+// adds article's id to the user's articles 
+userSchema.methods.addToArticles = async function(article) {
+  // add article to user's articles
+  this.articles = [...this.articles, article];
+  await this.save();
+  return this;
+}
+
+// create array of articles for client-side rendering
+userSchema.methods.mapArticles = async function() {
+  let userArticles = this.articles.map(async (article) => {
+    return Article.findOne({ _id: article._id });
+  });
+
+  return Promise.all(userArticles);
 }
 
 // CLASS METHODS

@@ -8,7 +8,7 @@ const { getNews, buildUserNews } = require('../utils/news');
 
 const router = new express.Router();
 
-const Article = require('../models/article');
+const { Article } = require('../models/article');
 const User = require('../models/user');
 
 router.get('/top-news', async ({ query }, res) => {
@@ -130,13 +130,29 @@ router.get('/dashboard-news', async ({ query }, res) => {
 // handles adding news stories to user collection
 router.post("/add-to-collection", async ({ body }, res) => {
   try {
-		// create a new article and save to database
-		const article = new Article({ ...body.newsStory });
-		await article.save();
-
 		// find user
 		const user = await User.findOne({ username: body.username });
-		console.log(user);
+
+		// try to find the article in database
+		// avoid creating duplicate article entry
+		let [ article ] = await Article.find({ title: body.newsStory.title });
+
+		// if not found, create article
+		if (!article) {
+			// create a new article and save to database
+			article = new Article({ ...body.newsStory });
+			await article.save();
+		}
+
+		// add to user's articles 
+		await user.addToArticles(article);
+
+		// create array of user's articles
+		const userArticles = await user.mapArticles();
+		console.log(userArticles);
+
+		// send back newly updated user news story collection
+		res.status(200).send(userArticles);
   } catch (error) {
 		console.error(error);
   }
