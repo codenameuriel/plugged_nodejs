@@ -9,6 +9,7 @@ const { getNews, buildUserNews } = require('../utils/news');
 const router = new express.Router();
 
 const Article = require('../models/article');
+const User = require('../models/user');
 
 router.get('/top-news', async ({ query }, res) => {
 	try {
@@ -84,13 +85,8 @@ router.get('/source-news', async (req, res) => {
 
 router.get('/topic-news', async ({ query }, res) => {
 	try {
-		console.log('inside topic-news')
 		const apiQuery = createQuery(defaultPaginationQuery(), query);
 		const data = await newsapi.v2.everything(apiQuery);
-
-		console.log(data)
-
-		console.log(data)
 		const { articles, totalResults } = data;
 		const totalPages = calculateNumOfPages(totalResults)();
 
@@ -131,14 +127,19 @@ router.get('/dashboard-news', async ({ query }, res) => {
 	}
 });
 
-// router.post("/add-to-collection", async ({ body }, res) => {
-//   const article = new Article({ ...body });
+// handles adding news stories to user collection
+router.post("/add-to-collection", async ({ body }, res) => {
+  try {
+		// create a new article and save to database
+		const article = new Article({ ...body.newsStory });
+		await article.save();
 
-//   try {
-
-//   } catch (error) {
-
-//   }
-// });
+		// find user
+		const user = await User.findOne({ username: body.username });
+		console.log(user);
+  } catch (error) {
+		console.error(error);
+  }
+});
 
 module.exports = router;
