@@ -148,7 +148,7 @@ router.post("/add-to-collection", async ({ body }, res) => {
 		await user.addToArticles(article);
 
 		// create array of user's articles
-		const userArticles = await user.mapArticles();
+		const userArticles = await user.getArticles();
 		console.log(userArticles);
 
 		// send back newly updated user news story collection

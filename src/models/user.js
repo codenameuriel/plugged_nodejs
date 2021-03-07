@@ -98,7 +98,7 @@ userSchema.methods.addToArticles = async function(article) {
 }
 
 // create array of articles for client-side rendering
-userSchema.methods.mapArticles = async function() {
+userSchema.methods.getArticles = async function() {
   let userArticles = this.articles.map(async (article) => {
     return Article.findOne({ _id: article._id });
   });

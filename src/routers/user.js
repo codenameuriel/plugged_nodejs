@@ -15,7 +15,11 @@ router.post("/signup", async ({ body: { username, password, categories} }, res) 
     // JSON auth token is generated and added to the users collection of tokens to track various points of login
     const token = await user.generateAuthToken();
 
-    const returnedUser = { username: user.username, tokens: user.tokens, categories: user.formattedCategories() };
+    const returnedUser = { 
+      username: user.username, 
+      categories: user.formattedCategories(),
+      articles: await user.getArticles() 
+    };
 
     res.status(201).send({ returnedUser, token });
   } catch (error) {
@@ -30,7 +34,9 @@ router.post("/login", async ({ body: { username, password } }, res) => {
     const token = await user.generateAuthToken();
 
     const returnedUser = {
-      username: user.username, tokens: user.tokens, categories: user.formattedCategories()
+      username: user.username, 
+      categories: user.formattedCategories(), 
+      articles: await user.getArticles()
     };
 
     res.send({ returnedUser, token });
