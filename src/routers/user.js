@@ -1,8 +1,11 @@
 const express = require("express");
-const User = require("../models/user");
+
 const router = new express.Router();
 
-router.post("/signup", async ({ body: { username, password, categories} }, res) => { 
+const User = require("../models/user");
+const Article = require('../models/article');
+
+router.post("/signup", async ({ body: { username, password, categories } }, res) => { 
   try {
     const userData = { username, password };
     const user = new User(userData);
@@ -18,7 +21,7 @@ router.post("/signup", async ({ body: { username, password, categories} }, res) 
     const returnedUser = { 
       username: user.username, 
       categories: user.formattedCategories(),
-      articles: await user.getArticles() 
+      articles: await user.getArticles()
     };
 
     res.status(201).send({ returnedUser, token });

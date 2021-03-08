@@ -24,12 +24,14 @@ const articleSchema = new mongoose.Schema({
   },
   content: {
     type: String
+  },
+  owner: {
+    type: mongoose.Schema.Types.ObjectId,
+    required: true,
+    ref: 'User'
   }
 }, { timestamps: true });
 
 const Article = mongoose.model("Article", articleSchema);
 
-module.exports = {
-  Article,
-  articleSchema
-};
+module.exports = Article;

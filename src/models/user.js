@@ -1,9 +1,9 @@
 const mongoose = require("mongoose");
-const validator = require("validator");
+// const validator = require("validator");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-const { Article, articleSchema } = require('./article');
+const Article = require('./article');
 
 const userSchema = new mongoose.Schema({
   username: {
@@ -30,13 +30,6 @@ const userSchema = new mongoose.Schema({
       }
     }
   ],
-  articles: [
-    {
-      article: {
-        type: articleSchema
-      }
-    }
-  ],
   tokens : [
     {
       token : {
@@ -45,6 +38,15 @@ const userSchema = new mongoose.Schema({
       }
     }
   ]
+});
+
+// VIRTUAL PROPERTY
+
+// assign an articles property for the user instance to access their added articles
+userSchema.virtual('articles', {
+  ref: 'Article',
+  localField: '_id',
+  foreignField: 'owner'
 });
 
 // INSTANCE METHODS
@@ -89,21 +91,9 @@ userSchema.methods.formattedCategories = function() {
   return user.categories.map(cat => cat.category);
 }
 
-// adds article's id to the user's articles 
-userSchema.methods.addToArticles = async function(article) {
-  // add article to user's articles
-  this.articles = [...this.articles, article];
-  await this.save();
-  return this;
-}
-
 // create array of articles for client-side rendering
 userSchema.methods.getArticles = async function() {
-  let userArticles = this.articles.map(async (article) => {
-    return Article.findOne({ _id: article._id });
-  });
-
-  return Promise.all(userArticles);
+  return await Article.find({ owner: this._id });
 }
 
 // CLASS METHODS
