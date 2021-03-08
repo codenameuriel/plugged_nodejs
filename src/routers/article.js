@@ -128,7 +128,7 @@ router.get('/dashboard-news', async ({ query }, res) => {
 });
 
 // handles adding news stories to user collection
-router.post("/add-to-collection", async ({ body }, res) => {
+router.post('/add-to-collection', async ({ body }, res) => {
   try {
 		// find user
 		const user = await User.findOne({ username: body.username });
@@ -142,7 +142,6 @@ router.post("/add-to-collection", async ({ body }, res) => {
 		// save article to database
 		await article.save();
 
-		// const articles = await Article.find({ owner: user._id });
 		const articles = await user.getArticles();
 
 		// send back newly updated user news story collection
@@ -150,6 +149,24 @@ router.post("/add-to-collection", async ({ body }, res) => {
   } catch (error) {
 		console.error(error);
   }
+});
+
+router.delete('/remove-from-collection/:id', async (req, res) => {
+	try {
+		const article = await Article.findOneAndDelete({
+			_id: req.params.id
+		});
+
+		if (!article) return res.status(404).send();
+
+		const user = await User.findOne({ _id: article.owner._id });
+		const articles = await user.getArticles();
+
+		res.send(articles);
+	} catch (error) {
+		console.error(error);
+		res.status(500).send(error);
+	}
 });
 
 module.exports = router;
