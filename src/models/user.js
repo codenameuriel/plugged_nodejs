@@ -73,6 +73,19 @@ userSchema.methods.toJSON = function() {
   return userObject;
 }
 
+userSchema.methods.removeCategories = async function(categories) {
+  let subscribedCategories = this.categories;
+
+  categories.forEach(category => {
+    subscribedCategories = subscribedCategories.filter(catObj => catObj.category !== category);
+  });
+
+  this.categories = subscribedCategories;
+  await this.save();
+  
+  return this;
+}
+
 // User instance method to add subscribed categories to User's categories list
 userSchema.methods.addCategories = async function(categories) {
   const user = this;

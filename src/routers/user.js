@@ -35,8 +35,6 @@ router.post("/login", async ({ body: { username, password } }, res) => {
     const user = await User.findByCredentials(username, password);
     const token = await user.generateAuthToken();
 
-    console.log(user);
-
     const returnedUser = {
       username: user.username, 
       categories: user.formattedCategories(), 

@@ -4,17 +4,19 @@ const router = new express.Router();
 
 const User = require('../models/user');
 
-router.post("/subscribe/categories", async (req, res) => {
+router.post("/subscriptions/categories", async (req, res) => {
   try {
-    const { body: { username, categories } } = req;
+    const { body: { username, categories, isSubscribed } } = req;
     const user = await User.findOne({ username });
 
-    const categoriesArray = categories.split(',');
-    await user.addCategories(categoriesArray);
-
+    // check whether to add or remove categories from user's categories
+    if (!isSubscribed) await user.addCategories(categories);
+    else await user.removeCategories(categories);
+    
     const updatedCategories = user.formattedCategories();
 
-    res.status(200).send({ categories: updatedCategories });
+    // return array of user's categories
+    res.status(200).send(updatedCategories);
   } catch (error) {
     console.error(error);
     res.status(400).send({ error: error.message });
