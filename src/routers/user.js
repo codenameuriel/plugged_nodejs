@@ -3,7 +3,6 @@ const express = require("express");
 const router = new express.Router();
 
 const User = require("../models/user");
-const Article = require('../models/article');
 
 router.post("/signup", async ({ body: { username, password, categories } }, res) => { 
   try {
@@ -35,6 +34,8 @@ router.post("/login", async ({ body: { username, password } }, res) => {
     // if user is not found or password does not match hashed password, will throw error
     const user = await User.findByCredentials(username, password);
     const token = await user.generateAuthToken();
+
+    console.log(user);
 
     const returnedUser = {
       username: user.username, 
