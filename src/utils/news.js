@@ -51,13 +51,15 @@ async function getNews(query, type) {
 			// compute number of fetches needed to get all articles
 			const numOfFetches = calcNumOfFetches(totalResults, articles.length);
 
-			// get remaining articles due to 20 max per fetch
-      const { articles: remainingArticles } = (
-				await getRemainingArticles(query, numOfFetches, type)
-			);
+			if (numOfFetches > 1) {
+				// get remaining articles due to 20 max per fetch
+				const { articles: remainingArticles } = (
+					await getRemainingArticles(query, numOfFetches, type)
+				);
 
-			// store articles in cache
-      getNews.storeArticles(remainingArticles, type);
+				// store articles in cache
+				getNews.storeArticles(remainingArticles, type);
+			}
 
 			console.log('returning fetched articles');
 			return getNews.cache[type];
@@ -83,15 +85,15 @@ function calcNumOfFetches(totalResults, numOfArticles) {
 }
 
 async function getRemainingArticles(query, numOfFetches, type) {
-  // construct array of fetches
-  // round up, and subtract 1 for the initial fetch of page 1
-  // add 2 to index to account for removal of page 1
+	// construct array of fetches
+	// round up, and subtract 1 for the initial fetch of page 1
+	// add 2 to index to account for removal of page 1
 	const fetchArray = new Array(Math.ceil(numOfFetches - 1))
-		.fill(0)
-		.map(async (ele, idx) => {
-			const q = createQuery(query, { page: idx + 2 });
-			return await fetchFromEndpoint(type)(q);
-		});
+	.fill(0)
+	.map(async (ele, idx) => {
+		const q = createQuery(query, { page: idx + 2 });
+		return await fetchFromEndpoint(type)(q);
+	});
 
 	// make fetches in parallel
 	return await (await Promise.all(fetchArray))[0];
