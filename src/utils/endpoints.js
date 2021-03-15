@@ -3,6 +3,7 @@ const newsapi = require('../newsapi');
 const fetchFromEndpoint = type => {
   switch (type) {
     case 'top-news':
+    case 'category-news':
       return async query => {
         return await newsapi.v2.topHeadlines(query);
       };

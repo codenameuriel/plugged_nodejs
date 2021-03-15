@@ -15,8 +15,9 @@ router.get('/top-news', async ({ query }, res) => {
 	try {
 		// create query for api call
 		const apiQuery = createQuery({ page: 1 }, defaultCountryQuery());
+
 		// initial request to get news
-		const articles = await getNews(apiQuery);
+		const articles = await getNews(apiQuery, 'top-news');
 
 		// calculate total pages needed to render 9 articles per page
 		const totalPages = calculateNumOfPages(articles.length)();
@@ -39,17 +40,22 @@ router.get('/top-news', async ({ query }, res) => {
 
 router.get('/category-news', async ({ query }, res) => {
 	try {
-		const baseQuery = createQuery(
-			defaultPaginationQuery(),
-			defaultCountryQuery()
-		);
-
-		// update base queries with category query
-		const updatedQuery = createQuery(baseQuery, query);
-		const data = await newsapi.v2.topHeadlines(updatedQuery);
-		const { articles } = data;
-
-		res.status(200).send(articles);
+		const apiQuery = createQuery({ page: 1 }, defaultCountryQuery(), query);
+		console.log(apiQuery);
+		const articles = await getNews(apiQuery, 'category-news');
+		console.log(articles.length);
+		const totalPages = calculateNumOfPages(articles.length)();
+		
+		// initial page load will only include the category query
+		if (Object.keys(query).length === 1) {
+			res.status(200).send({ 
+				articles: articles.slice(0, perPage()), totalPages 
+			});
+		} else {
+			const to = query.page * perPage();
+			const from = to - perPage(); 
+			res.status(200).send({ articles: articles.slice(from, to), totalPages });
+		}
 	} catch (error) {
 		console.error(error);
 		res.status(500).send(error);

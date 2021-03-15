@@ -23,44 +23,49 @@ async function buildUserNews(query, queries, type) {
 	return userNews;
 }
 
-async function getNews(query) {
+async function getNews(query, type) {
 	try {
+		// check for new category searches
+		checkCategoryCache(query);
+
 		// only want to fetch new articles every 15 minutes
 		const { time: cachedTime } = getNews.cache;
 		const timeElapsed = checkTime(cachedTime.getTime(), 15);
 
 		// if articles have not been cached or if 15 minutes have passed
-		if (!getNews.cache.articles.length || timeElapsed) {
+		if (!getNews.cache[type].length || timeElapsed) {
 			// update time
 			getNews.cache.time = new Date();
 
 			// make initial request for articles and totalResults
 			// totalResults is the total amount of articles available
 			let { articles, totalResults } = (
-        await fetchFromEndpoint('top-news')(query)
+        await fetchFromEndpoint(type)(query)
       );
 
       // clear cache
-      getNews.clearArticlesCache();
+      getNews.clearArticlesCache(type);
 			// store news in cache
-			getNews.storeArticles(articles);
+			getNews.storeArticles(articles, type);
 
 			// compute number of fetches needed to get all articles
 			const numOfFetches = calcNumOfFetches(totalResults, articles.length);
 
 			// get remaining articles due to 20 max per fetch
-      const { articles: allArticles } = await getRemainingNews(numOfFetches);
+      const { articles: remainingArticles } = (
+				await getRemainingArticles(query, numOfFetches, type)
+			);
 
 			// store articles in cache
-      getNews.storeArticles(allArticles);
+      getNews.storeArticles(remainingArticles, type);
 
 			console.log('returning fetched articles');
-			return getNews.cache.articles;
+			return getNews.cache[type];
 		} else {
 			console.log('returning cached articles');
 			// articles have been cached and 15 minutes have not passed
 			// prevent making too many api calls
-			return getNews.cache.articles;
+			return getNews.cache[type];
 		}
 	} catch (error) {
 		console.error(error);
@@ -77,7 +82,7 @@ function calcNumOfFetches(totalResults, numOfArticles) {
 	return totalResults / numOfArticles;
 }
 
-async function getRemainingNews(numOfFetches) {
+async function getRemainingArticles(query, numOfFetches, type) {
   // construct array of fetches
   // round up, and subtract 1 for the initial fetch of page 1
   // add 2 to index to account for removal of page 1
@@ -85,22 +90,48 @@ async function getRemainingNews(numOfFetches) {
 		.fill(0)
 		.map(async (ele, idx) => {
 			const q = createQuery(query, { page: idx + 2 });
-			return await fetchFromEndpoint('top-news')(q);
+			return await fetchFromEndpoint(type)(q);
 		});
 
 	// make fetches in parallel
 	return await (await Promise.all(fetchArray))[0];
 }
 
+function getCategory(query) {
+	const { category } = query;
+	return category;
+}
+
+// caches the category to track when a different category page is rendered
+function cacheCategory(category) {
+	getNews.cache.category = category;
+}
+
+function checkCategoryCache(query) {
+	const category = getCategory(query);
+	// if there is no cached category
+	if (!getNews.cache.category) cacheCategory(category);
+
+	// if cached category is old from incoming category
+	if (category !== getNews.cache.category) {
+		getNews.clearArticlesCache('category-news');
+		cacheCategory(category);
+	}
+}
+
 // initialize cache
 getNews.cache = {};
-getNews.cache.articles = [];
+getNews.cache.category = '';
+getNews.cache['top-news'] = [];
+getNews.cache['category-news'] = [];
 getNews.cache.time = new Date();
-getNews.storeArticles = articles => {
-	getNews.cache.articles = [...getNews.cache.articles, ...articles];
+
+getNews.storeArticles = (articles, type) => {
+	getNews.cache[type] = [...getNews.cache[type], ...articles];
 };
-getNews.clearArticlesCache = () => {
-  getNews.cache.articles = [];
+
+getNews.clearArticlesCache = type => {
+  getNews.cache[type] = [];
 };
 
 module.exports = {
