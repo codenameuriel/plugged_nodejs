@@ -71,14 +71,17 @@ router.get('/sources', async (req, res) => {
 		const sourcesMap = {};
 
 		// fill out sources map
+		// reassign image field to base 64 string for client side rendering
 		for (let source of sources) {
 			if (!(source.category in sourcesMap)) {
 				sourcesMap[source.category] = (
-					sources.filter(s => s.category === source.category)
+					sources
+						.filter(s => s.category === source.category)
+						.map(s => ({ ...s, image: s.image.toString('base64') }))
 				);
 			}
 		}
-
+		
 		res.status(200).send(sourcesMap);
 	} catch (error) {
 		console.error(error);
