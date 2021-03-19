@@ -23,7 +23,7 @@ const sourceSchema = new mongoose.Schema({
     type: String
   },
   image: {
-    type: String
+    type: Buffer
   }
 });
 

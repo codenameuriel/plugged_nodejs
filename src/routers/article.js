@@ -10,6 +10,7 @@ const router = new express.Router();
 
 const Article  = require('../models/article');
 const User = require('../models/user');
+const Source = require('../models/source');
 
 router.get('/top-news', async ({ query }, res) => {
 	try {
@@ -62,14 +63,23 @@ router.get('/category-news', async ({ query }, res) => {
 	}
 });
 
-// provides an array of source objects
 router.get('/sources', async (req, res) => {
 	try {
-		const baseQuery = defaultCountryQuery();
-		const data = await newsapi.v2.sources(baseQuery);
-		const { sources } = data;
+		// get array of Sources from MongoDB database
+		const sources = await Source.find({});
+		// use object to map source category to array of sources by category
+		const sourcesMap = {};
 
-		res.status(200).send(sources);
+		// fill out sources map
+		for (let source of sources) {
+			if (!(source.category in sourcesMap)) {
+				sourcesMap[source.category] = (
+					sources.filter(s => s.category === source.category)
+				);
+			}
+		}
+
+		res.status(200).send(sourcesMap);
 	} catch (error) {
 		console.error(error);
 		res.status(500).send(error);
