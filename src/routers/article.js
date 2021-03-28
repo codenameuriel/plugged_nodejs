@@ -42,15 +42,14 @@ router.get('/top-news', async ({ query }, res) => {
 router.get('/category-news', async ({ query }, res) => {
 	try {
 		const apiQuery = createQuery({ page: 1 }, defaultCountryQuery(), query);
-		console.log(apiQuery);
 		const articles = await getNews(apiQuery, 'category-news');
-		console.log(articles.length);
 		const totalPages = calculateNumOfPages(articles.length)();
 		
 		// initial page load will only include the category query
 		if (Object.keys(query).length === 1) {
 			res.status(200).send({ 
-				articles: articles.slice(0, perPage()), totalPages 
+				articles: articles.slice(0, perPage()), 
+				totalPages 
 			});
 		} else {
 			const to = query.page * perPage();
@@ -89,13 +88,29 @@ router.get('/sources', async (req, res) => {
 	}
 });
 
-router.get('/source-news', async (req, res) => {
+router.get('/sources-news', async ({ query }, res) => {
 	try {
-		const query = createQuery(defaultPaginationQuery(), query);
-		const data = await newsapi.v2.topHeadlines(query);
-		const { articles } = data;
+		// does include country query because news api does not allow it for sources
+		const apiQuery = createQuery({ page: 1 }, query);
+		const articles = await getNews(apiQuery, 'sources-news');
+		const totalPages = calculateNumOfPages(articles.length)();
 
-		res.status(200).send(articles);
+		console.log(articles.length);
+
+		// initial page load will only include the news type query
+		if (Object.keys(query).length === 1) {
+			res.status(200).send({ 
+				articles: articles.slice(0, perPage()), 
+				totalPages 
+			});
+		} else {
+			const to = query.page * perPage();
+			const from = to - perPage(); 
+			res.status(200).send({ 
+				articles: articles.slice(from, to), 
+				totalPages 
+			});
+		}
 	} catch (error) {
 		console.error(error);
 		res.status(500).send(error);

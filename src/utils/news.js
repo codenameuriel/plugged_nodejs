@@ -25,8 +25,15 @@ async function buildUserNews(query, queries, type) {
 
 async function getNews(query, type) {
 	try {
-		// check for new category searches
-		checkCategoryCache(query);
+		// handling news by category, sources, does not apply for top-news news
+		if (type !== 'top-news') {
+			// handles changes to news types i.e. category, sources, etc
+			// extracts the news type and value from the query
+			const newsTypeData = getNewsTypeAndValue(query, type);
+
+			// either caches the data or updates existing cached data
+			updateNewsTypeCache(newsTypeData);
+		}
 
 		// only want to fetch new articles every 15 minutes
 		const { time: cachedTime } = getNews.cache;
@@ -65,7 +72,7 @@ async function getNews(query, type) {
 			return getNews.cache[type];
 		} else {
 			console.log('returning cached articles');
-			// articles have been cached and 15 minutes have not passed
+			// articles have been cached but 15 minutes have not passed
 			// prevent making too many api calls
 			return getNews.cache[type];
 		}
@@ -87,13 +94,15 @@ function calcNumOfFetches(totalResults, numOfArticles) {
 async function getRemainingArticles(query, numOfFetches, type) {
 	// construct array of fetches
 	// round up, and subtract 1 for the initial fetch of page 1
-	// add 2 to index to account for removal of page 1
-	const fetchArray = new Array(Math.ceil(numOfFetches - 1))
-	.fill(0)
-	.map(async (ele, idx) => {
-		const q = createQuery(query, { page: idx + 2 });
-		return await fetchFromEndpoint(type)(q);
-	});
+	// add 2 to index to account for 0 index and removal of page 1
+	const fetchArray = (
+		new Array(Math.ceil(numOfFetches - 1))
+			.fill(0)
+			.map(async (ele, idx) => {
+				const q = createQuery(query, { page: idx + 2 });
+				return await fetchFromEndpoint(type)(q);
+			})
+	);
 
 	// make fetches in parallel
 	return await (await Promise.all(fetchArray))[0];
@@ -104,28 +113,59 @@ function getCategory(query) {
 	return category;
 }
 
-// caches the category to track when a different category page is rendered
-function cacheCategory(category) {
-	getNews.cache.category = category;
+// news api uses "sources" as a parameter to fetch news by source/sources
+function getSources(query) {
+	const { sources } = query;
+	return sources;
 }
 
-function checkCategoryCache(query) {
-	const category = getCategory(query);
-	// if there is no cached category
-	if (!getNews.cache.category) cacheCategory(category);
+// caches news type i.e. category, sources, etc
+function cacheNewsType(type, value) {
+	getNews.cache[type] = value;
+}
 
-	// if cached category is old from incoming category
-	if (category !== getNews.cache.category) {
-		getNews.clearArticlesCache('category-news');
-		cacheCategory(category);
+// restructure the query object to an object
+// the news type, i.e. category will be assigned to type
+// the news type data i.e. business will be assigned to value
+function getNewsTypeAndValue(query, type) {
+	// splits type i.e. category-news => category
+	type = type.split('-')[0];
+	let value;
+
+	switch (type) {
+		case 'category':
+			value = getCategory(query);
+			break;
+		case 'sources':
+			value = getSources(query);
+			break;
+		default:
+			return;
+	}
+
+	return { type, value };
+}
+
+// function either sets value for a type i.e. category = business, source = ign
+// or updates the currently value for a type
+function updateNewsTypeCache({ type, value }) {
+	// if there is no cached news type data
+	if (!getNews.cache[type]) cacheNewsType(type, value);
+
+	// if cached new type data is outdated 
+	if (value !== getNews.cache[type]) {
+		getNews.clearArticlesCache(`${type}-news`);
+		cacheNewsType(type, value);
 	}
 }
 
 // initialize cache
 getNews.cache = {};
 getNews.cache.category = '';
+getNews.cache.sources = '';
 getNews.cache['top-news'] = [];
 getNews.cache['category-news'] = [];
+getNews.cache['sources-news'] = [];
 getNews.cache.time = new Date();
 
 getNews.storeArticles = (articles, type) => {
