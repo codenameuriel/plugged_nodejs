@@ -95,8 +95,6 @@ router.get('/sources-news', async ({ query }, res) => {
 		const articles = await getNews(apiQuery, 'sources-news');
 		const totalPages = calculateNumOfPages(articles.length)();
 
-		console.log(articles.length);
-
 		// initial page load will only include the news type query
 		if (Object.keys(query).length === 1) {
 			res.status(200).send({ 

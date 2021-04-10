@@ -49,6 +49,14 @@ userSchema.virtual('articles', {
   foreignField: 'owner'
 });
 
+// assign newspapers property for user instance
+// will allow access to all newspapers belonging to user
+userSchema.virtual('newspapers', {
+  ref: 'Newspaper',
+  localField: 'id',
+  foreignField: 'owner'
+});
+
 // INSTANCE METHODS
 
 // User instance method to generate a JSON auth token upon user logging in/signing up
