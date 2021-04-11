@@ -180,6 +180,7 @@ router.post('/add-to-collection', async ({ body }, res) => {
 		res.status(200).send(articles);
   } catch (error) {
 		console.error(error);
+		res.status(500).send(error);
   }
 });
 
