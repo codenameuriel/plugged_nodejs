@@ -53,7 +53,7 @@ userSchema.virtual('articles', {
 // will allow access to all newspapers belonging to user
 userSchema.virtual('newspapers', {
   ref: 'Newspaper',
-  localField: 'id',
+  localField: '_id',
   foreignField: 'owner'
 });
 

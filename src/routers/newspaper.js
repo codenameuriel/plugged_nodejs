@@ -6,6 +6,7 @@ const User = require('../models/user');
 const Source = require('../models/source');
 const Newspaper = require('../models/newspaper');
 
+// create a newspaper for user
 router.post('/newspaper', async ({ body }, res) => {
   try {
     // find user
@@ -37,10 +38,25 @@ router.post('/newspaper', async ({ body }, res) => {
     });
 
     await newspaper.save();
-    res.redirect('/newspapers/all');
+    res.redirect('/newspaper/view?user=' + user._id);
   } catch (error) {
     console.error(error);
     res.status(500).send(error);
+  }
+});
+
+// get all users newspapers
+router.get('/newspaper/view', async (req, res) => {
+  try {
+    // find user
+    const user = await User.findOne({ _id: req.query.user });
+    // populate users newspaper instances
+    await user.populate('newspapers').execPopulate();
+  
+    // send back an object with users newspapers
+    res.send({ newspapers: user.newspapers });
+  } catch (error) {
+    console.log(error);
   }
 });
 

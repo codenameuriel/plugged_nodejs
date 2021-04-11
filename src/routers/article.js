@@ -168,7 +168,7 @@ router.post('/add-to-collection', async ({ body }, res) => {
 		// create article with user as owner
 		const article = new Article({ 
 			...body.newsStory,
-			owner:  user._id
+			owner: user._id
 		});
 
 		// save article to database
