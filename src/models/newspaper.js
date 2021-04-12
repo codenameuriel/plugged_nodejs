@@ -16,8 +16,7 @@ const newspaperSchema = new mongoose.Schema({
   sources: [
     {
       source: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Source'
+        type: String
       }
     }
   ],

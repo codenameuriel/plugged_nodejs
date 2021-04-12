@@ -6,55 +6,49 @@ const User = require('../models/user');
 const Source = require('../models/source');
 const Newspaper = require('../models/newspaper');
 
-// create a newspaper for user
-router.post('/newspaper', async ({ body }, res) => {
+// create a Newspaper for user
+router.post('/newspaper', async (req, res) => {
+  const { username, newspaperTitle, categories, sources, topics } = req.body;
   try {
     // find user
-    const user = await User.findOne({ username: body.username });
+    const user = await User.findOne({ username });
+    
+    // format attributes to instantiate a Newspaper
+    const formattedCategories = categories.map(category => ({ category }));
+    const formattedSources = sources.map(source => ({ source }));
+    const formattedTopics = topics.map(topic => ({ topic }));
 
-    // find sources
-    // create array of source objects with 'source' property pointing to an id
-    // of a source object in database
-    // returns an array of async searches
-    const sourceSearches = body.sources.map(async (source) => {
-      return { source: (await Source.findOne({ name: source }))._id };
-    });
-
-    // resolve searches in parallel
-    const sources = await (Promise.all(sourceSearches));
-
-    // format categories for newspaper model
-    const categories = body.categories.map(category => ({ category }));
-
-    // format topics for newspaper model
-    const topics = body.topics.map(topic => ({ topic }));
-
+    // instantiate a Newspaper
     const newspaper = new Newspaper({
       owner: user._id,
-      title: body.newspaperTitle,
-      categories,
-      sources,
-      topics
+      title: newspaperTitle,
+      categories: formattedCategories,
+      sources: formattedSources,
+      topics: formattedTopics
     });
 
+    // save Newspaper to database
     await newspaper.save();
-    res.redirect('/newspaper/view?user=' + user._id);
+    
+    // redirect to return all newspapers back to client-side
+    res.redirect('/newspaper/view-all?user=' + user._id);
   } catch (error) {
     console.error(error);
     res.status(500).send(error);
   }
 });
 
-// get all users newspapers
-router.get('/newspaper/view', async (req, res) => {
+// get all users Newspapers
+router.get('/newspaper/view-all', async (req, res) => {
   try {
     // find user
     const user = await User.findOne({ _id: req.query.user });
+    
     // populate users newspaper instances
     await user.populate('newspapers').execPopulate();
   
-    // send back an object with users newspapers
-    res.send({ newspapers: user.newspapers });
+    // send back array of users newspapers
+    res.send(user.newspapers);
   } catch (error) {
     console.log(error);
   }
