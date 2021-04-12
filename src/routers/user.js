@@ -35,10 +35,14 @@ router.post("/login", async ({ body: { username, password } }, res) => {
     const user = await User.findByCredentials(username, password);
     const token = await user.generateAuthToken();
 
+    // populate users newspapers
+    await user.populate('newspapers').execPopulate();
+
     const returnedUser = {
       username: user.username, 
       categories: user.formattedCategories(), 
-      articles: await user.getArticles()
+      articles: await user.getArticles(),
+      newspapers: user.newspapers
     };
 
     res.send({ returnedUser, token });
